@@ -1,0 +1,27 @@
+{
+  "type": "response",
+  "message": "Extraction successful",
+  "payload": {
+    "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+    "finalUrl": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+    "status": 404,
+    "contentType": "text/html",
+    "format": "markdown",
+    "title": "404 Not Found",
+    "metadata": {
+      "language": "en-us"
+    },
+    "content": "# Not Found\n",
+    "bytes": 9279,
+    "durationMs": 2007,
+    "engine": "tls",
+    "attempts": 1,
+    "geo": {
+      "country": null,
+      "state": null,
+      "city": null,
+      "rotation": "rotating"
+    }
+  },
+  "pagination": {}
+}

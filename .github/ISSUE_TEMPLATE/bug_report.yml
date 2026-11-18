@@ -1,0 +1,35 @@
+name: Bug report
+description: A false alert, a missed change, a crash or a wrong diff
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never paste an API key or a webhook URL. Replace them with `qd_live_...` and `https://hooks.example.com/...`.
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      options: [quanticdata, local]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version, Node.js and OS (or GitHub Action)
+      placeholder: page-change-monitor 0.1.0, Node 22, ubuntu-latest
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: The target from monitor.json
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Output, and what you expected
+      render: text
+    validations:
+      required: true

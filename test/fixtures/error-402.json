@@ -1,0 +1,5 @@
+{
+  "type": "error",
+  "message": "Your free tier for this month is used up and your balance can't cover this call (estimated $0.002).",
+  "payload": { "code": "INSUFFICIENT_FUNDS", "balance": 0, "free_remaining": 0 }
+}
