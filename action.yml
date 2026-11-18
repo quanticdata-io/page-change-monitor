@@ -1,0 +1,74 @@
+name: Page change monitor
+description: Check public web pages for text, price and stock changes, keep snapshots in the repository and alert by webhook.
+author: QuanticData
+branding:
+  icon: eye
+  color: purple
+
+inputs:
+  config:
+    description: Path of the monitor.json config file, relative to the workspace.
+    default: monitor.json
+  snapshots:
+    description: Snapshot directory. Empty uses the "snapshots" value of the config.
+    default: ''
+  engine:
+    description: quanticdata (default) or local.
+    default: quanticdata
+  api-key:
+    description: QuanticData API key (pass a secret). Needed by the quanticdata engine.
+    default: ''
+  webhook:
+    description: Generic JSON webhook URL (pass a secret). Overrides notify.webhook.
+    default: ''
+  slack-webhook:
+    description: Slack-compatible incoming webhook URL (pass a secret). Overrides notify.slack.
+    default: ''
+  fail-on-change:
+    description: 'true: fail the step when a target alerts.'
+    default: 'false'
+  args:
+    description: Extra command-line options separated by spaces, for example "--dry-run" or "--quiet". Values with spaces are not supported here.
+    default: ''
+
+outputs:
+  changed:
+    description: '"true" when at least one target alerted.'
+    value: ${{ steps.run.outputs.changed }}
+  alerts:
+    description: Number of targets that alerted.
+    value: ${{ steps.run.outputs.alerts }}
+  errors:
+    description: Number of targets that could not be checked.
+    value: ${{ steps.run.outputs.errors }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Build page-change-monitor
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci --no-audit --no-fund && npm run build
+    - id: run
+      name: Check pages
+      shell: bash
+      env:
+        QUANTICDATA_API_KEY: ${{ inputs.api-key }}
+        MONITOR_WEBHOOK_URL: ${{ inputs.webhook }}
+        MONITOR_SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_SNAPSHOTS: ${{ inputs.snapshots }}
+        INPUT_ENGINE: ${{ inputs.engine }}
+        INPUT_FAIL_ON_CHANGE: ${{ inputs.fail-on-change }}
+        INPUT_ARGS: ${{ inputs.args }}
+      run: |
+        set -euo pipefail
+        args=(--config "$INPUT_CONFIG" --engine "$INPUT_ENGINE")
+        if [ -n "$INPUT_SNAPSHOTS" ]; then args+=(--snapshots "$INPUT_SNAPSHOTS"); fi
+        if [ "$INPUT_FAIL_ON_CHANGE" = "true" ]; then args+=(--fail-on-change); fi
+        # shellcheck disable=SC2206
+        extra=($INPUT_ARGS)
+        node "$GITHUB_ACTION_PATH/dist/cli.js" "${args[@]}" "${extra[@]}"

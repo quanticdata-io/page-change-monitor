@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: CLI smoke test
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js validate --config examples/monitor.json
+
+  action:
+    name: Composite action (local engine, offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Local page and config
+        run: |
+          mkdir -p /tmp/site
+          printf '<html><head><title>Fixture</title></head><body><p>Version 1</p></body></html>' > /tmp/site/index.html
+          printf 'User-agent: *\nAllow: /\n' > /tmp/site/robots.txt
+          (cd /tmp/site && python3 -m http.server 8765 >/dev/null 2>&1 &)
+          sleep 1
+          printf '{"targets":[{"name":"Fixture page","url":"http://127.0.0.1:8765/index.html"}]}' > /tmp/monitor.json
+      - id: first
+        uses: ./
+        with:
+          config: /tmp/monitor.json
+          snapshots: /tmp/snapshots
+          engine: local
+      - name: Change the page
+        run: printf '<html><body><p>Version 2</p></body></html>' > /tmp/site/index.html
+      - id: second
+        uses: ./
+        with:
+          config: /tmp/monitor.json
+          snapshots: /tmp/snapshots
+          engine: local
+          args: --min-interval 0
+      - name: Check outputs
+        run: |
+          test "${{ steps.first.outputs.changed }}" = "false"
+          test "${{ steps.second.outputs.changed }}" = "true"
+          grep -q "Version 2" /tmp/snapshots/fixture-page.md

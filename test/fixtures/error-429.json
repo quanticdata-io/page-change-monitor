@@ -1,0 +1,5 @@
+{
+  "type": "error",
+  "message": "Rate limit exceeded. Resets in 23 minutes.",
+  "payload": { "rateLimit": 1200, "requestCount": 1200, "resetAt": "2026-10-07T15:00:00.000Z" }
+}

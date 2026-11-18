@@ -1,0 +1,29 @@
+{
+  "snapshots": "snapshots",
+  "minIntervalSeconds": 5,
+  "targets": [
+    {
+      "name": "Book price - A Light in the Attic",
+      "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+      "mode": "fields",
+      "fields": {
+        "title": "div.product_main h1",
+        "price": { "selector": "div.product_main p.price_color", "fns": ["amount_from_string"] },
+        "availability": "div.product_main p.availability"
+      },
+      "rules": [
+        { "field": "price", "type": "decrease", "percent": 5 },
+        { "field": "price", "type": "below", "value": 40 },
+        { "field": "availability", "type": "not_contains", "value": "In stock" }
+      ]
+    },
+    {
+      "name": "Quotes home page",
+      "url": "https://quotes.toscrape.com/",
+      "mode": "text",
+      "contentMode": "smart",
+      "parser": { "exclude": [".tags", ".tags-box", "footer"] },
+      "ignore": ["[(]about[)]"]
+    }
+  ]
+}
